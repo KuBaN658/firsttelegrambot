@@ -1,9 +1,10 @@
 import requests
 import time
+from personal_data import token
 
 
 API_URL: str = 'https://api.telegram.org/bot'
-BOT_TOKEN: str = '5724983857:AAH4CndDxyCz8z-IpG88eTaRtyqCKXB8ABs'
+BOT_TOKEN: str = token
 TEXT: str = 'Ура! Классный апдейт!'
 MAX_COUNTER: int = 100
 

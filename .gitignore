@@ -1,2 +1,4 @@
 .idea/
 venv/
+personal_data.py
+__pycache__/
