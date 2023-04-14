@@ -1,15 +1,13 @@
-import os
-import dotenv
 from aiogram import Bot, Dispatcher
 from aiogram.filters import Text, Command, BaseFilter
 from aiogram.types import Message
 import random
+from config_data.config import config
 
-dotenv.load_dotenv()
 
-API_TOKEN: str = os.getenv('BOT_TOKEN')
+API_TOKEN: str = config.tg_bot.token
 ATTEMPTS: int = 6
-ADMINS_IDS: list = [os.getenv('ADMIN_ID')]
+ADMINS_IDS: list = config.tg_bot.admin_ids
 
 # Создаем объекты бота и диспетчера
 bot: Bot = Bot(token=API_TOKEN)
