@@ -1,17 +1,37 @@
+import os
+import dotenv
 from aiogram import Bot, Dispatcher
-from aiogram.filters import Text, Command
+from aiogram.filters import Text, Command, BaseFilter
 from aiogram.types import Message
-from personal_data import token
 import random
 
-API_TOKEN: str = token
+dotenv.load_dotenv()
+
+API_TOKEN: str = os.getenv('BOT_TOKEN')
 ATTEMPTS: int = 6
+ADMINS_IDS: list = [os.getenv('ADMIN_ID')]
 
 # Создаем объекты бота и диспетчера
 bot: Bot = Bot(token=API_TOKEN)
 dp: Dispatcher = Dispatcher()
 
 users: dict = {}
+
+
+class IsAdmin(BaseFilter):
+    def __init__(self, admin_ids: list[int]) -> None:
+        # В качестве параметра фильтр принимает список с целыми числами
+        self.admin_ids = admin_ids
+
+    async def __call__(self, message: Message) -> bool:
+        return message.from_user.id in self.admin_ids
+
+
+@dp.message(Text(startswith='параметр ', ignore_case=True), IsAdmin(ADMINS_IDS))
+async def change_parametrs(message: Message):
+    global ATTEMPTS
+    ATTEMPTS = int(message.text[-1])
+    await message.answer(f'Параметр: количество попыток изменен на {ATTEMPTS}')
 
 
 # Этот хэндлер будет срабатывать на команду "/start"
@@ -61,12 +81,18 @@ async def process_cancel_command(message: Message):
 @dp.message(Text(text=['Да', 'Давай', 'Сыграем', 'Игра',
                        'Играть', 'Хочу играть'], ignore_case=True))
 async def process_positive_answer(message: Message):
-    if not users[ message.from_user.id]['in_game']:
+    if message.from_user.id not in users:
+        users[message.from_user.id] = {'in_game': False,
+                                          'secret_number': None,
+                                          'attempts': None,
+                                          'total_games': 0,
+                                          'wins': 0}
+    if not users[message.from_user.id]['in_game']:
         await message.answer('Ура!\n\nЯ загадал число от 1 до 100, '
                              'попробуй угадать!')
-        users[ message.from_user.id]['in_game'] = True
-        users[ message.from_user.id]['secret_number'] = random.randint(1, 101)
-        users[ message.from_user.id]['attempts'] = ATTEMPTS
+        users[message.from_user.id]['in_game'] = True
+        users[message.from_user.id]['secret_number'] = random.randint(1, 101)
+        users[message.from_user.id]['attempts'] = ATTEMPTS
     else:
         await message.answer('Пока мы играем в игру я могу '
                              'реагировать только на числа от 1 до 100 '
